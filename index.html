@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="提示詞收藏館">
+<meta name="theme-color" content="#F7F0E6">
+<title>我的 AI 提示詞收藏館</title>
+<style>
+:root{--bg:#F7F0E6;--card:#FFFBF5;--tea:#C8A27C;--brown:#7B5A3C;--ink:#3F2E22;--soft:#8A7461;--line:#E6D7C3;--heart:#C25B4E}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 -apple-system,"PingFang TC","Noto Sans TC",sans-serif}
+body{padding:env(safe-area-inset-top) 0 0}
+header{padding:18px 18px 6px}
+h1{margin:0;font-size:21px;font-weight:700;color:var(--brown);letter-spacing:.03em}
+h2{margin:0 0 4px;font-size:20px}
+main{padding:8px 16px 60px;max-width:640px;margin:0 auto}
+header{max-width:640px;margin:0 auto}
+input,select,textarea,button{font:inherit;color:inherit}
+input,select,textarea{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--tea)}
+textarea{min-height:170px;resize:vertical}
+label{display:block;margin:16px 0 6px;font-weight:600;color:var(--brown)}
+.hint{font-size:14px;color:var(--soft);margin:4px 0 0}
+.btn{min-height:48px;padding:10px 18px;border:0;border-radius:14px;background:var(--brown);color:#fff;font-weight:600;cursor:pointer}
+.btn.alt{background:#EADBC7;color:var(--brown)}
+.btn.warn{background:#F3DAD5;color:#A8443A}
+.btn.block{width:100%;margin-top:12px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.card{background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--line);position:relative}
+.thumb{aspect-ratio:4/5;background:#EADBC7 center/cover;display:flex;align-items:center;justify-content:center;color:var(--soft);font-size:14px;cursor:pointer}
+.card .info{padding:10px 12px 12px}
+.name{font-weight:700;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;cursor:pointer}
+.cat{display:inline-block;margin:4px 0 8px;font-size:13px;color:var(--brown);background:#EFE2CF;border-radius:20px;padding:1px 10px}
+.card .btn{width:100%;min-height:42px;padding:6px;font-size:15px}
+.heart{position:absolute;top:8px;right:8px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,251,245,.92);font-size:22px;color:#B7A592;cursor:pointer}
+.heart.on{color:var(--heart)}
+.list{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:14px;cursor:pointer}
+.item small{color:var(--soft)}
+.tag{display:inline-block;margin:2px 4px 2px 0;padding:2px 10px;border-radius:20px;background:#EFE2CF;font-size:14px;color:var(--brown)}
+.empty{margin-top:24px;padding:24px 20px;background:var(--card);border:1.5px dashed var(--tea);border-radius:18px;text-align:center}
+.empty ol{text-align:left;margin:12px auto;padding-left:22px;max-width:320px}
+nav{position:sticky;top:0;z-index:10;display:flex;justify-content:center;background:rgba(255,251,245,.96);border-top:1px solid var(--line);border-bottom:1px solid var(--line);backdrop-filter:blur(10px);margin-top:6px}
+nav button{flex:1;max-width:200px;border:0;background:none;padding:9px 0 8px;font-size:13px;color:var(--soft);cursor:pointer}
+nav button b{display:block;font-size:22px;line-height:1.2;font-weight:400}
+nav button.on{color:var(--brown);font-weight:700}
+.sheet{position:fixed;inset:0;background:var(--bg);overflow-y:auto;z-index:20;padding:env(safe-area-inset-top) 0 40px}
+.sheet .in{max-width:640px;margin:0 auto;padding:12px 16px 40px}
+.sheet img{width:100%;border-radius:16px;display:block;margin:8px 0}
+.car{position:relative;margin:8px 0}
+.car-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:0;border-radius:16px}
+.car-track::-webkit-scrollbar{display:none}
+.car-track img{flex:0 0 100%;width:100%;max-height:70vh;object-fit:contain;scroll-snap-align:center;scroll-snap-stop:always;margin:0;border-radius:16px;background:transparent}
+.car-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(63,46,34,.55);color:#fff;font-size:26px;line-height:1;cursor:pointer;z-index:2}
+.car-nav.l{left:8px}.car-nav.r{right:8px}
+.car-nav[disabled]{opacity:.25}
+.car-count{position:absolute;top:10px;right:10px;background:rgba(63,46,34,.65);color:#fff;font-size:15px;padding:3px 12px;border-radius:20px;z-index:2}
+.car-dots{display:flex;justify-content:center;gap:8px;margin-top:8px}
+.car-dots i{width:10px;height:10px;border-radius:50%;background:#D9C8B0;display:block}
+.car-dots i.on{background:var(--brown);transform:scale(1.25)}
+.prompt{white-space:pre-wrap;word-break:break-word;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;user-select:text;-webkit-user-select:text;line-height:1.7}
+.meta{margin:14px 0;font-size:16px}.meta div{margin:4px 0}.meta span{color:var(--soft)}
+.meta a{color:var(--brown);word-break:break-all}
+.back{background:none;border:0;color:var(--brown);font-size:17px;font-weight:600;padding:12px 0;cursor:pointer}
+.mask{position:fixed;inset:0;background:rgba(63,46,34,.45);z-index:40;display:flex;align-items:center;justify-content:center;padding:24px}
+.dlg{background:var(--card);border-radius:20px;padding:22px;max-width:340px;width:100%}
+#toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;z-index:60;opacity:0;pointer-events:none;transition:opacity .25s;max-width:86%;text-align:center}
+#toast.show{opacity:1}
+.prev{max-width:220px;border-radius:12px;margin-top:8px}
+@media(min-width:620px){main,header{max-width:900px}.grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:960px){main,header{max-width:1280px}.grid{grid-template-columns:repeat(4,1fr)}}
+.chk{display:flex;align-items:center;gap:10px;margin-top:16px;font-weight:600;color:var(--brown)}
+.chk input{width:24px;height:24px}
+</style>
+</head>
+<body>
+<header style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>我的 AI 提示詞收藏館</h1><button class="btn alt" style="min-height:40px;padding:4px 12px;font-size:15px;white-space:nowrap" data-act="backup">備份與還原</button></header>
+<nav id="nav"></nav>
+<main id="app"></main>
+<div id="layer"></div>
+<div id="toast"></div>
+
+<script>
+const DEFAULT_CATS=['Q版人物','3D公仔','人像攝影','古風造型','神明與觀音','水墨與國畫','節慶海報','旅遊宣傳','LINE貼圖','AI影片','動物與寵物','其他'];
+const TOOLS=['Gemini','ChatGPT','Claude','其他'];
+let db,items=[],cats=[],view='home',catSel=null,q='',editing=null,draftImgs=[],detailId=null,zipFile=null,lastBackup=0;
+
+/* ---------- 本機資料庫 ---------- */
+function openDB(){return new Promise((ok,no)=>{const r=indexedDB.open('promptLibrary',1);
+ r.onupgradeneeded=()=>{r.result.createObjectStore('items',{keyPath:'id'});r.result.createObjectStore('meta')};
+ r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+function run(store,mode,fn){return new Promise((ok,no)=>{const t=db.transaction(store,mode);const rq=fn(t.objectStore(store));
+ t.oncomplete=()=>ok(rq&&rq.result);t.onerror=()=>no(t.error);t.onabort=()=>no(t.error)})}
+const saveCats=()=>run('meta','readwrite',s=>s.put(cats,'cats'));
+const putItem=it=>run('items','readwrite',s=>s.put(it));
+const delItem=id=>run('items','readwrite',s=>s.delete(id));
+
+/* ---------- 小工具 ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const urlMap=new WeakMap();
+const src=b=>{if(!urlMap.has(b))urlMap.set(b,URL.createObjectURL(b));return urlMap.get(b)};
+const today=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())};
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200)}
+function confirmBox(msg,ok='確定'){return new Promise(res=>{
+ $('#layer').insertAdjacentHTML('beforeend',`<div class="mask" id="cf"><div class="dlg"><p style="margin-top:0">${esc(msg)}</p><div class="row"><button class="btn alt" data-r="0">取消</button><button class="btn warn" data-r="1">${esc(ok)}</button></div></div></div>`);
+ $('#cf').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;$('#cf').remove();res(b.dataset.r==='1')}})}
+async function copyText(t){
+ try{await navigator.clipboard.writeText(t);return true}catch(e){}
+ try{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;top:0;opacity:0';document.body.appendChild(a);a.focus();a.select();a.setSelectionRange(0,t.length);const ok=document.execCommand('copy');a.remove();return ok}catch(e){return false}}
+function shrink(file){return new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(file);
+ im.onload=()=>{const k=Math.min(1,1200/Math.max(im.width,im.height)),c=document.createElement('canvas');
+  c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+  const png=/^image\/(png|webp|gif)$/i.test(file.type);
+  c.toBlob(b=>{URL.revokeObjectURL(u);b?ok(b):no()},png?'image/png':'image/jpeg',.82)};
+ im.onerror=()=>no();im.src=u})}
+
+/* ---------- 畫面 ---------- */
+function cardHTML(it){
+ const cv=(it.images||[])[0],n=(it.images||[]).length,th=cv?`style="background-image:url('${src(cv)}')"`:'';
+ return `<div class="card"><div class="thumb" ${th} data-act="open" data-id="${it.id}">${cv?(n>1?`<span style="position:absolute;left:8px;top:8px;background:rgba(63,46,34,.7);color:#fff;border-radius:12px;padding:0 9px;font-size:13px">${n} 張</span>`:''):'尚未加圖片'}</div>
+ <button class="heart ${it.fav?'on':''}" data-act="fav" data-id="${it.id}" aria-label="最愛">${it.fav?'♥':'♡'}</button>
+ <div class="info"><div class="name" data-act="open" data-id="${it.id}">${esc(it.name)}</div><span class="cat">${esc(it.cat||'未分類')}</span>
+ <button class="btn" data-act="copy" data-id="${it.id}">複製提示詞</button></div></div>`}
+const gridHTML=l=>`<div class="grid">${l.map(cardHTML).join('')}</div>`;
+function match(it){const s=q.trim().toLowerCase();if(!s)return true;
+ return [it.name,it.prompt,it.cat,(it.tags||[]).join(' '),it.tool,it.note].join(' ').toLowerCase().includes(s)}
+const sorted=l=>[...l].sort((a,b)=>b.ts-a.ts);
+
+function vHome(){
+ if(!items.length)return `<div class="empty"><h2>歡迎來到收藏館</h2><p>這裡可以收藏你喜歡的 AI 圖片提示詞。</p>
+ <ol><li>按下方「新增」</li><li>貼上提示詞，選一張圖片</li><li>按「儲存」就完成了</li></ol>
+ <button class="btn block" data-act="tab" data-v="add">新增第一筆收藏</button></div>`;
+ const l=sorted(items).filter(match);
+ return `${remind()}<input id="q" type="search" placeholder="搜尋名稱、提示詞、分類、標籤" value="${esc(q)}">
+ ${l.length?gridHTML(l):'<p class="hint" style="text-align:center;margin-top:30px">找不到符合的收藏，換個關鍵字試試。</p>'}`}
+function vCats(){
+ if(catSel!==null){const l=sorted(items.filter(i=>(i.cat||'未分類')===catSel));
+  return `<button class="back" data-act="catback">‹ 返回分類</button><h2>${esc(catSel)}（${l.length}）</h2>${l.length?gridHTML(l):'<p class="hint">這個分類還沒有收藏。</p>'}`}
+ return `<h2>分類</h2><div class="list">${cats.map(c=>`<div class="item" data-act="cat" data-c="${esc(c)}"><span>${esc(c)}</span><small>${items.filter(i=>i.cat===c).length} 筆 ›</small></div>`).join('')}</div>
+ <button class="btn alt block" data-act="mgr">管理分類（新增／改名／刪除）</button>`}
+function vFavs(){const l=sorted(items.filter(i=>i.fav));
+ return `<h2>我的最愛</h2>${l.length?gridHTML(l):'<div class="empty"><p>還沒有最愛。<br>在卡片右上角按 ♡，就會收藏到這裡。</p></div>'}`}
+function vMgr(){return `<button class="back" data-act="cats">‹ 返回分類</button><h2>管理分類</h2>
+ <div class="row" style="margin-top:10px"><input id="newcat" placeholder="輸入新分類名稱"><button class="btn" style="flex:0 0 90px" data-act="addcat">新增</button></div>
+ <div class="list">${cats.map((c,i)=>`<div class="item" style="cursor:default"><span>${esc(c)}</span><span class="row" style="flex:0 0 auto"><button class="btn alt" style="min-height:40px;padding:4px 14px" data-act="rencat" data-i="${i}">改名</button><button class="btn warn" style="min-height:40px;padding:4px 14px" data-act="delcat" data-i="${i}">刪除</button></span></div>`).join('')}</div>`}
+function vForm(){const e=editing||{},opt=(a,v)=>a.map(x=>`<option ${x===v?'selected':''}>${esc(x)}</option>`).join('');
+ const catList=cats.includes(e.cat)||!e.cat?cats:[...cats,e.cat];
+ return `<h2>${editing?'編輯收藏':'新增收藏'}</h2>
+ <label>收藏名稱（必填）</label><input id="f-name" value="${esc(e.name)}" placeholder="例如：可愛Q版貓咪">
+ <label>參考圖片（可選多張，也可以日後再補）</label>
+ <button class="btn alt block" data-act="pick" style="margin-top:0">＋ 從照片或檔案選圖片</button>
+ <input id="f-file" type="file" accept="image/*" multiple hidden><div id="prev">${prevHTML()}</div><p class="hint">第一張會當作首頁卡片的封面。</p>
+ <label>完整提示詞（必填）</label><textarea id="f-prompt" placeholder="把完整提示詞貼在這裡">${esc(e.prompt)}</textarea>
+ <label>分類</label><select id="f-cat">${opt(catList,e.cat||'其他')}</select>
+ <label>標籤</label><input id="f-tags" value="${esc((e.tags||[]).join('、'))}" placeholder="用頓號或逗號分開，例如：可愛、貓、貼圖">
+ <label>原始來源網址</label><input id="f-url" type="url" inputmode="url" value="${esc(e.url)}" placeholder="https://">
+ <label>適用的 AI 工具</label><select id="f-tool">${opt(TOOLS,e.tool||'Gemini')}</select>
+ <label>收藏日期</label><input id="f-date" type="date" value="${esc(e.date||today())}">
+ <label>個人備註</label><textarea id="f-note" style="min-height:90px" placeholder="例如：加上「柔和光線」效果更好">${esc(e.note)}</textarea>
+ <label class="chk"><input id="f-fav" type="checkbox" ${e.fav?'checked':''}>加入最愛</label>
+ <button class="btn block" data-act="save">儲存</button><button class="btn alt block" data-act="cancel">取消</button>`}
+
+function render(){
+ const m={home:vHome,cats:vCats,favs:vFavs,add:vForm,mgr:vMgr,backup:vBackup};$('#app').innerHTML=m[view]();
+ const tabs=[['home','⌂','首頁'],['cats','☰','分類'],['favs','♥','最愛'],['add','＋','新增']],cur=view==='mgr'?'cats':view;
+ $('#nav').innerHTML=tabs.map(t=>`<button class="${cur===t[0]?'on':''}" data-act="tab" data-v="${t[0]}"><b>${t[1]}</b>${t[2]}</button>`).join('');
+ const qi=$('#q');if(qi)qi.oninput=e=>{q=e.target.value;const pos=e.target.selectionStart;render();const n=$('#q');n.focus();n.setSelectionRange(pos,pos)};
+ const ff=$('#f-file');if(ff)ff.onchange=async e=>{const fs=[...e.target.files];e.target.value='';let bad=0;
+  for(const f of fs){if(draftImgs.length>=9){toast('每筆最多放 9 張圖片');break}try{draftImgs.push(await shrink(f))}catch(x){bad++}}
+  $('#prev').innerHTML=prevHTML();toast(bad?`有 ${bad} 張圖片無法讀取`:'圖片已加入')}
+ const fi=$('#f-import');if(fi)fi.onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)importZip(f)}
+ renderDetail()}
+function goto(v){view=v;if(v==='add'&&!editing)draftImgs=[];if(v!=='add'){editing=null}if(v==='cats')catSel=null;detailId=null;render();scrollTo(0,0)}
+
+function carHTML(imgs){if(!imgs.length)return '';
+ const im=imgs.map(b=>`<img src="${src(b)}" loading="lazy">`).join('');
+ if(imgs.length===1)return im;
+ return `<div class="car"><div class="car-track" id="car-track">${im}</div>
+ <span class="car-count" id="car-count">1 / ${imgs.length}</span>
+ <button class="car-nav l" data-act="carprev" aria-label="上一張" disabled>‹</button>
+ <button class="car-nav r" data-act="carnext" aria-label="下一張">›</button>
+ <div class="car-dots" id="car-dots">${imgs.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div></div>`}
+function carUpdate(){const t=$('#car-track');if(!t)return;const n=t.children.length,i=Math.round(t.scrollLeft/t.clientWidth);
+ $('#car-count').textContent=`${i+1} / ${n}`;
+ document.querySelectorAll('#car-dots i').forEach((d,k)=>d.classList.toggle('on',k===i));
+ const l=document.querySelector('.car-nav.l'),r=document.querySelector('.car-nav.r');if(l)l.disabled=i<=0;if(r)r.disabled=i>=n-1}
+function carGo(d){const t=$('#car-track');if(!t)return;t.scrollBy({left:d*t.clientWidth,behavior:'smooth'})}
+document.addEventListener('scroll',e=>{if(e.target&&e.target.id==='car-track')carUpdate()},true);
+
+function renderDetail(){const L=$('#layer');L.querySelectorAll('.sheet').forEach(x=>x.remove());
+ const it=items.find(i=>i.id===detailId);if(!it)return;
+ L.insertAdjacentHTML('afterbegin',`<div class="sheet"><div class="in"><button class="back" data-act="close">‹ 返回</button>
+ <h2>${esc(it.name)}</h2>${carHTML(it.images||[])}
+ <button class="btn block" data-act="copy" data-id="${it.id}" style="margin-bottom:12px">複製完整提示詞</button>
+ <div class="prompt">${esc(it.prompt)}</div>
+ <div class="meta"><div><span>分類：</span>${esc(it.cat||'未分類')}</div><div><span>AI 工具：</span>${esc(it.tool)}</div><div><span>收藏日期：</span>${esc(it.date)}</div>
+ ${(it.tags||[]).length?`<div>${it.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
+ ${it.url?`<div><span>來源：</span><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.url)}</a></div>`:''}
+ ${it.note?`<div><span>備註：</span>${esc(it.note)}</div>`:''}</div>
+ <div class="row"><button class="btn alt" data-act="fav" data-id="${it.id}">${it.fav?'♥ 取消最愛':'♡ 加入最愛'}</button><button class="btn alt" data-act="edit" data-id="${it.id}">編輯</button></div>
+ <button class="btn warn block" data-act="del" data-id="${it.id}">刪除這筆收藏</button></div></div>`)}
+
+/* ---------- 操作 ---------- */
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id,it=items.find(i=>i.id===id);
+ if(a==='tab')return goto(b.dataset.v);
+ if(a==='carprev')return carGo(-1);
+ if(a==='carnext')return carGo(1);
+ if(a==='open'){detailId=id;renderDetail();return}
+ if(a==='close'){detailId=null;renderDetail();return}
+ if(a==='copy'){return toast(await copyText(it.prompt)?'已複製提示詞，可以貼到 AI 工具了':'複製失敗，請在詳細頁長按提示詞手動複製')}
+ if(a==='fav'){it.fav=!it.fav;await putItem(it);toast(it.fav?'已加入最愛':'已取消最愛');return render()}
+ if(a==='cat'){catSel=b.dataset.c;return render()}
+ if(a==='catback'){catSel=null;return render()}
+ if(a==='cats')return goto('cats');
+ if(a==='mgr'){view='mgr';return render()}
+ if(a==='backup'){detailId=null;view='backup';render();scrollTo(0,0);return}
+ if(a==='mk')return makeBackup();
+ if(a==='share'){try{await navigator.share({files:[zipFile],title:zipFile.name});markBackup()}catch(x){if(x.name!=='AbortError')toast('無法開啟分享選單，請改用「下載備份檔」')}return}
+ if(a==='dl'){const u=URL.createObjectURL(zipFile),l=document.createElement('a');l.href=u;l.download=zipFile.name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);markBackup();return}
+ if(a==='imp')return $('#f-import').click();
+ if(a==='edit'){editing=it;draftImgs=[...(it.images||[])];detailId=null;view='add';render();scrollTo(0,0);return}
+ if(a==='cancel'){editing=null;return goto('home')}
+ if(a==='pick')return $('#f-file').click();
+ if(a==='rmimg'){draftImgs.splice(+b.dataset.i,1);$('#prev').innerHTML=prevHTML();return}
+ if(a==='del'){if(await confirmBox(`確定要刪除「${it.name}」嗎？刪除後無法復原。`,'刪除')){await delItem(id);items=items.filter(i=>i.id!==id);detailId=null;toast('已刪除');render()}return}
+ if(a==='save'){
+  const name=$('#f-name').value.trim(),prompt=$('#f-prompt').value.trim();
+  if(!name){toast('請先輸入收藏名稱');$('#f-name').focus();return}
+  if(!prompt){toast('請先貼上完整提示詞');$('#f-prompt').focus();return}
+  const rec={id:editing?editing.id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),ts:editing?editing.ts:Date.now(),
+   name,prompt,images:draftImgs,cat:$('#f-cat').value,tags:$('#f-tags').value.split(/[,，、\s]+/).filter(Boolean),
+   url:$('#f-url').value.trim(),tool:$('#f-tool').value,date:$('#f-date').value||today(),note:$('#f-note').value.trim(),fav:$('#f-fav').checked};
+  try{await putItem(rec)}catch(x){return toast('儲存失敗，手機空間可能不足')}
+  const i=items.findIndex(x=>x.id===rec.id);i>=0?items[i]=rec:items.push(rec);
+  toast('已儲存');editing=null;q='';return goto('home')}
+ if(a==='addcat'){const v=$('#newcat').value.trim();if(!v)return toast('請輸入分類名稱');if(cats.includes(v))return toast('已經有這個分類了');
+  cats.push(v);await saveCats();toast('已新增分類');return render()}
+ if(a==='rencat'){const i=+b.dataset.i,old=cats[i],v=(prompt('請輸入新的分類名稱',old)||'').trim();
+  if(!v||v===old)return;if(cats.includes(v))return toast('已經有這個分類了');
+  cats[i]=v;await saveCats();for(const x of items.filter(x=>x.cat===old)){x.cat=v;await putItem(x)}toast('已改名');return render()}
+ if(a==='delcat'){const i=+b.dataset.i,c=cats[i],n=items.filter(x=>x.cat===c).length;
+  if(await confirmBox(n?`刪除「${c}」後，裡面 ${n} 筆收藏會移到「其他」。確定嗎？`:`確定要刪除分類「${c}」嗎？`,'刪除')){
+   cats.splice(i,1);if(n){if(!cats.includes('其他'))cats.push('其他');for(const x of items.filter(x=>x.cat===c)){x.cat='其他';await putItem(x)}}
+   await saveCats();toast('已刪除分類');render()}}
+});
+
+
+/* ---------- 圖片預覽、備份提醒 ---------- */
+function prevHTML(){if(!draftImgs.length)return '<p class="hint">目前沒有圖片</p>';
+ return `<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px">${draftImgs.map((b,i)=>`<div style="position:relative"><img src="${src(b)}" style="width:96px;height:96px;object-fit:cover;border-radius:12px;display:block"><button data-act="rmimg" data-i="${i}" style="position:absolute;top:-8px;right:-8px;width:30px;height:30px;border-radius:50%;border:0;background:var(--heart);color:#fff;font-size:16px" aria-label="移除這張">✕</button></div>`).join('')}</div>`}
+function remind(){if(!items.length)return '';const d=lastBackup?Math.floor((Date.now()-lastBackup)/864e5):-1;if(d>=0&&d<7)return '';
+ return `<div class="empty" style="margin:8px 0 0;padding:14px;text-align:left"><b>${d<0?'還沒有備份過':'已經 '+d+' 天沒備份'}</b><br><span class="hint">手機資料可能因清除 Safari 資料而消失，建議現在備份。</span><button class="btn block" data-act="backup">前往備份</button></div>`}
+const rid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function markBackup(){lastBackup=Date.now();run('meta','readwrite',s=>s.put(lastBackup,'lastBackup'));toast('已完成備份');render()}
+function ask(msg,btns){return new Promise(res=>{const id='ask'+Date.now();
+ $('#layer').insertAdjacentHTML('beforeend',`<div class="mask" id="${id}"><div class="dlg"><p style="margin-top:0;white-space:pre-line">${esc(msg)}</p>${btns.map(b=>`<button class="btn ${b.c??'alt'} block" data-r="${esc(b.v)}">${esc(b.t)}</button>`).join('')}</div></div>`);
+ $('#'+id).onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;$('#'+id).remove();res(b.dataset.r)}})}
+
+function vBackup(){
+ const when=lastBackup?new Date(lastBackup).toLocaleString('zh-TW'):'尚未備份過';
+ const canShare=zipFile&&navigator.canShare&&navigator.canShare({files:[zipFile]});
+ return `<h2>備份與還原</h2><p class="hint">目前共 ${items.length} 筆收藏。上次備份：${esc(when)}</p>
+ <div class="empty" style="text-align:left;margin-top:14px"><b>匯出備份</b>
+ <p class="hint">會把所有提示詞、分類、標籤、網址、備註、最愛和圖片，打包成一個 ZIP 檔。</p>
+ <button class="btn block" data-act="mk" ${items.length?'':'disabled'}>1．製作備份檔</button>
+ ${zipFile?`<p>已完成：${esc(zipFile.name)}（${(zipFile.size/1048576).toFixed(1)} MB）</p>
+ ${canShare?'<button class="btn block" data-act="share">2．傳到 Google 雲端硬碟（開啟分享選單）</button>':''}
+ <button class="btn alt block" data-act="dl">${canShare?'或':'2．'}下載備份檔（存到「檔案」App）</button>`:''}
+ <p class="hint">iPhone 上傳到 Google 雲端硬碟：按「傳到 Google 雲端硬碟」→ 在選單選「雲端硬碟」→ 選資料夾 → 按「上傳」。<br>如果選單沒有雲端硬碟，請先下載存到「檔案」，再自己打開雲端硬碟 App 上傳。</p></div>
+ <div class="empty" style="text-align:left;margin-top:14px"><b>匯入還原</b>
+ <p class="hint">選擇之前匯出的 ZIP 檔。匯入前會先讓你確認，不會直接覆蓋現有資料。</p>
+ <button class="btn block" data-act="imp">選擇備份檔</button><input id="f-import" type="file" accept=".zip,application/zip" hidden></div>`}
+
+/* ---------- ZIP 製作與讀取（不需要網路） ---------- */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function makeZip(files){const enc=new TextEncoder(),parts=[],cen=[];let off=0,cs=0;
+ for(const f of files){const nb=enc.encode(f.name),crc=crc32(f.data),sz=f.data.length;
+  const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);h.setUint32(14,crc,true);h.setUint32(18,sz,true);h.setUint32(22,sz,true);h.setUint16(26,nb.length,true);
+  parts.push(h.buffer,nb,f.data);
+  const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,0x21,true);c.setUint32(16,crc,true);c.setUint32(20,sz,true);c.setUint32(24,sz,true);c.setUint16(28,nb.length,true);c.setUint32(42,off,true);
+  cen.push(c.buffer,nb);cs+=46+nb.length;off+=30+nb.length+sz}
+ const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+ return new Blob([...parts,...cen,e.buffer],{type:'application/zip'})}
+async function readZip(file){const buf=await file.arrayBuffer(),v=new DataView(buf),u=new Uint8Array(buf);let e=-1;
+ for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65600);i--){if(v.getUint32(i,true)===0x06054b50){e=i;break}}
+ if(e<0)throw new Error('notzip');
+ const n=v.getUint16(e+10,true),out={},dec=new TextDecoder();let p=v.getUint32(e+16,true);
+ for(let i=0;i<n;i++){if(v.getUint32(p,true)!==0x02014b50)throw new Error('notzip');
+  const meth=v.getUint16(p+10,true),csz=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),el=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),lo=v.getUint32(p+42,true);
+  const name=dec.decode(u.subarray(p+46,p+46+nl)),ds=lo+30+v.getUint16(lo+26,true)+v.getUint16(lo+28,true);let data=u.subarray(ds,ds+csz);
+  if(meth===8){data=new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer())}
+  else if(meth!==0)throw new Error('method');
+  out[name]=data;p+=46+nl+el+cl}
+ return out}
+
+async function exportZip(){const enc=new TextEncoder(),files=[],out=[];
+ for(const it of items){const names=[];let k=0;
+  for(const b of it.images||[]){k++;const nm=`images/${it.id}-${k}.${b.type==='image/png'?'png':'jpg'}`;files.push({name:nm,data:new Uint8Array(await b.arrayBuffer())});names.push(nm)}
+  const {images,image,...rest}=it;out.push({...rest,images:names})}
+ const json={app:'my-ai-prompt-library',version:1,exportedAt:new Date().toISOString(),categories:cats,items:out};
+ files.unshift({name:'README.txt',data:enc.encode('我的 AI 提示詞收藏館 備份檔\r\ndata.json = 所有收藏資料（提示詞、分類、標籤、網址、備註、最愛）\r\nimages 資料夾 = 所有圖片\r\n請在網站的「備份與還原」選擇此檔案還原。\r\n')},{name:'data.json',data:enc.encode(JSON.stringify(json,null,1))});
+ return makeZip(files)}
+async function makeBackup(){toast('正在製作備份檔，請稍候…');
+ try{const blob=await exportZip();zipFile=new File([blob],`提示詞收藏館備份-${today()}.zip`,{type:'application/zip'});render()}catch(x){toast('製作失敗，請再試一次')}}
+
+async function importZip(file){let files,data;
+ try{files=await readZip(file);if(!files['data.json'])throw 0;data=JSON.parse(new TextDecoder().decode(files['data.json']));if(data.app!=='my-ai-prompt-library'||!Array.isArray(data.items))throw 0}
+ catch(x){return ask('這個檔案不是「我的 AI 提示詞收藏館」的備份檔，或檔案已損壞。\n請選擇匯出時產生的 .zip 檔案。',[{t:'知道了',v:'ok'}])}
+ const key=i=>(i.name||'')+'\u0001'+(i.prompt||''),find=n=>items.find(o=>o.id===n.id||key(o)===key(n)),dup=data.items.filter(find).length;
+ let mode='go';
+ if(dup){mode=await ask(`備份檔共有 ${data.items.length} 筆收藏。\n其中 ${data.items.length-dup} 筆是新的，${dup} 筆和現有收藏重複。\n\n重複的要怎麼處理？（你現有的其他資料不會被刪除）`,[{t:'略過重複（建議）',v:'skip',c:''},{t:'重複的另存為副本',v:'copy'},{t:'用備份檔覆蓋重複的',v:'over',c:'warn'},{t:'取消匯入',v:'cancel'}])}
+ else{mode=await ask(`備份檔共有 ${data.items.length} 筆收藏，都是新的。\n匯入後會加進現有收藏，不會覆蓋任何資料。`,[{t:'開始匯入',v:'go',c:''},{t:'取消',v:'cancel'}])}
+ if(mode==='cancel')return;
+ let add=0,skip=0,over=0,copy=0;
+ try{for(const n of data.items){
+  const imgs=(n.images||[]).filter(nm=>files[nm]).map(nm=>new Blob([files[nm]],{type:/\.png$/i.test(nm)?'image/png':'image/jpeg'}));
+  const rec={id:n.id||rid(),ts:n.ts||Date.now(),name:String(n.name||'未命名'),prompt:String(n.prompt||''),images:imgs,cat:n.cat||'其他',tags:Array.isArray(n.tags)?n.tags:[],url:n.url||'',tool:n.tool||'其他',date:n.date||today(),note:n.note||'',fav:!!n.fav};
+  const ex=find(n);
+  if(ex){if(mode==='skip'){skip++;continue}
+   if(mode==='over'){rec.id=ex.id;await putItem(rec);items[items.indexOf(ex)]=rec;over++;continue}
+   rec.id=rid();rec.name+='（副本）';await putItem(rec);items.push(rec);copy++;continue}
+  await putItem(rec);items.push(rec);add++}
+  const all=[...(data.categories||[]),...items.map(i=>i.cat)];let ch=false;for(const c of all){if(c&&!cats.includes(c)){cats.push(c);ch=true}}if(ch)await saveCats();
+ }catch(x){render();return ask('匯入中途停止了，可能是手機儲存空間不足。已匯入的部分會保留，你可以清出空間後再匯入一次（重複的會自動略過）。',[{t:'知道了',v:'ok'}])}
+ render();await ask(`匯入完成！\n新增 ${add} 筆${skip?'\n略過重複 '+skip+' 筆':''}${over?'\n覆蓋 '+over+' 筆':''}${copy?'\n另存副本 '+copy+' 筆':''}`,[{t:'好',v:'ok',c:''}])}
+
+/* ---------- 啟動 ---------- */
+(async()=>{
+ try{db=await openDB();items=await run('items','readonly',s=>s.getAll())||[];cats=await run('meta','readonly',s=>s.get('cats'));
+  items.forEach(i=>{if(!i.images){i.images=i.image?[i.image]:[];delete i.image}});
+  lastBackup=(await run('meta','readonly',s=>s.get('lastBackup')))||0;
+  if(!cats){cats=[...DEFAULT_CATS];await saveCats()}
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
+ }catch(x){$('#app').innerHTML='<div class="empty"><p>無法開啟本機儲存空間。<br>請不要使用「無痕瀏覽」，並用 Safari 重新開啟。</p></div>';return}
+ render()})();
+</script>
+</body>
+</html>
